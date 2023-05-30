@@ -17,18 +17,15 @@
 
 package org.apache.hop.log.xp;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.extension.ExtensionPoint;
 import org.apache.hop.core.extension.IExtensionPoint;
 import org.apache.hop.core.logging.HopLogStore;
 import org.apache.hop.core.logging.ILogChannel;
+import org.apache.hop.core.util.Utils;
 import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.log.Defaults;
-import org.apache.hop.log.listeners.FileLoggingEventListener;
 import org.apache.hop.log.listeners.GelfLoggingEventListener;
-import org.apache.hop.log.util.LoggingCore;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.engine.IPipelineEngine;
 
@@ -45,46 +42,29 @@ public class PipelineLoggingExtensionPoint
       ILogChannel logChannel, IVariables variables, IPipelineEngine<PipelineMeta> pipelineEngine)
       throws HopException {
 
-    // See if logging is enabled
-    //
-    if (!LoggingCore.isEnabled(pipelineEngine)) {
+    // Check if logging is enabled
+    if (Utils.isEmpty(variables.getVariable(Defaults.VARIABLE_CUSTOM_LOGGING_ENABLED))
+        || variables.getVariable(Defaults.VARIABLE_CUSTOM_LOGGING_ENABLED).equals("N")) {
       return;
     }
 
-    String baseProcessName = variables.getVariable(Defaults.PROCESS_IDENTIFIER_VAR_NAME);
-    String executionTag = variables.getVariable(Defaults.PROCESS_EXECUTION_TAG);
-    if (executionTag == null) {
-      executionTag = (new SimpleDateFormat("yyyyMMddHHmmss")).format(new Date());
-      variables.setVariable(Defaults.PROCESS_EXECUTION_TAG, executionTag);
-    }
-
-    String processId = variables.getVariable(Defaults.PROCESS_ID_VAR_NAME);
-    String outputLogfile = variables.getVariable(Defaults.LOG_OUTPUT_DIRECTORY_VAR_NAME);
-
-    String itemName = pipelineEngine.getPipelineMeta().getName();
-
     if (variables.getVariable(Defaults.LOGGER_SET_VAR) == null) {
-      GelfLoggingEventListener ls =
-              new GelfLoggingEventListener(
-                      baseProcessName, executionTag, processId, "localhost", 12201);
-//      FileLoggingEventListener ls =
-//          new FileLoggingEventListener(
-//              baseProcessName, executionTag, processId, outputLogfile, true);
+      GelfLoggingEventListener ls = new GelfLoggingEventListener();
 
-      variables.setVariable(Defaults.LOGGER_SET_VAR, "Y");
-      variables.setVariable(
-          Defaults.MAIN_PROCESS_NAME_VAR, itemName);
+      if (ls.loggingEventListenerInit(variables)) {
+        variables.setVariable(Defaults.LOGGER_SET_VAR, "Y");
+        String itemName = pipelineEngine.getPipelineMeta().getName();
+        variables.setVariable(Defaults.MAIN_PROCESS_NAME_VAR, itemName);
 
-      HopLogStore.getAppender().addLoggingEventListener(ls);
+        HopLogStore.getAppender().addLoggingEventListener(ls);
 
-      pipelineEngine.addExecutionFinishedListener(
-          pipelineEventRef -> {
-            if (variables
-                .getVariable(Defaults.MAIN_PROCESS_NAME_VAR)
-                .equals(itemName)) {
-              HopLogStore.getAppender().removeLoggingEventListener(ls);
-            }
-          });
+        pipelineEngine.addExecutionFinishedListener(
+            pipelineEventRef -> {
+              if (variables.getVariable(Defaults.MAIN_PROCESS_NAME_VAR).equals(itemName)) {
+                HopLogStore.getAppender().removeLoggingEventListener(ls);
+              }
+            });
+      }
     }
   }
 }

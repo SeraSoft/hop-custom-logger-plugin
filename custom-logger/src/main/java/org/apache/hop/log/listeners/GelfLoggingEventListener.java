@@ -22,6 +22,8 @@ import java.util.List;
 import org.apache.hop.core.Const;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.logging.*;
+import org.apache.hop.core.util.Utils;
+import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.log.Defaults;
 import org.apache.hop.log.util.HopLoglineFormatter;
 import org.graylog2.gelfclient.*;
@@ -31,10 +33,11 @@ public class GelfLoggingEventListener implements IHopLoggingEventListener {
 
   private String executionTag;
   private String processId;
-  private String hostname;
-  private int port;
   private String logChannelId;
-  private String baseProcessName;
+  private String processName;
+  private String sourceSys;
+  private String hostname;
+  private String port;
   private HopLoglineFormatter layout;
   private GelfConfiguration config;
   private GelfTransport transport;
@@ -43,43 +46,44 @@ public class GelfLoggingEventListener implements IHopLoggingEventListener {
   /**
    * Log all log lines to the specified file
    *
-   * @param baseProcessName
-   * @param hostname
-   * @param port
    * @throws HopException
    */
-  public GelfLoggingEventListener(
-      String baseProcessName, String executionTag, String processId, String hostname, int port)
-      throws HopException {
-    this(null, baseProcessName, executionTag, processId, hostname, port);
+  public GelfLoggingEventListener() throws HopException {
+    this(null);
   }
 
   /**
    * Log only lines belonging to the specified log channel ID or one of it's children
    * (grandchildren) to the specified file.
    *
-   * @param logChannelId
-   * @param hostname
-   * @param port
    * @throws HopException
    */
-  public GelfLoggingEventListener(
-      String logChannelId,
-      String baseProcessName,
-      String executionTag,
-      String processId,
-      String hostname,
-      int port)
-      throws HopException {
+  public GelfLoggingEventListener(String logChannelId) throws HopException {
     this.logChannelId = logChannelId;
-    this.layout = new HopLoglineFormatter(baseProcessName, executionTag, processId, true);
-    this.hostname = hostname;
-    this.processId = processId;
-    this.port = port;
-    this.baseProcessName = baseProcessName;
-    this.executionTag = executionTag;
+  }
+
+  public boolean loggingEventListenerInit(IVariables variables) throws HopException {
+
+    this.processName = variables.getVariable(Defaults.PROCESS_IDENTIFIER_PARAM_NAME);
+    this.executionTag = variables.getVariable(Defaults.LMS_EXECUTION_TAG_ATTRIBUTE_NAME);
+    this.processId = variables.getVariable(Defaults.PROCESS_ID_VAR_NAME);
+
+    this.layout = new HopLoglineFormatter(processName, executionTag, processId, true);
+
+    this.hostname = variables.getVariable(Defaults.LMS_HOST_VAR_NAME);
+    this.port = variables.getVariable(Defaults.LMS_PORT_VAR_NAME);
+
+    if (Utils.isEmpty(this.hostname) || Utils.isEmpty(this.port)) {
+      return false;
+    }
+
+    this.sourceSys =
+        (variables.getVariable(Defaults.SOURCE_SYS_VAR_NAME) != null
+            ? variables.getVariable(Defaults.SOURCE_SYS_VAR_NAME)
+            : Const.getHostnameReal());
+
     this.config =
-        new GelfConfiguration(new InetSocketAddress(hostname, port))
+        new GelfConfiguration(new InetSocketAddress(this.port, Integer.parseInt(this.port)))
             .transport(GelfTransports.UDP)
             .queueSize(512)
             .connectTimeout(5000)
@@ -87,6 +91,8 @@ public class GelfLoggingEventListener implements IHopLoggingEventListener {
             .tcpNoDelay(true)
             .sendBufferSize(32768);
     this.transport = GelfTransports.create(this.config);
+
+    return true;
   }
 
   @Override
@@ -112,12 +118,12 @@ public class GelfLoggingEventListener implements IHopLoggingEventListener {
         LogLevel logLevel = ((LogMessage) messageObject).getLevel();
 
         if (sendMessage) {
-          GelfMessageBuilder msgBuilder = new GelfMessageBuilder("", this.hostname);
+          GelfMessageBuilder msgBuilder = new GelfMessageBuilder("", this.sourceSys);
           GelfMessage msg =
               msgBuilder
                   .message(((LogMessage) messageObject).getMessage())
                   .additionalField("_stream_type", Defaults.STREAM_TYPE)
-                  .additionalField("_process_name", this.baseProcessName)
+                  .additionalField("_process_name", this.processName)
                   // TODO: Temporarily commented because is not generated as the very first thing so
                   // there are lines that has this field missing
                   // .additionalField("_process_id", this.processId)
