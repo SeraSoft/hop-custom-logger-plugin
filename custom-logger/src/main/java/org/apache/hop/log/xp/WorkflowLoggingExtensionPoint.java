@@ -25,7 +25,6 @@ import org.apache.hop.core.logging.ILogChannel;
 import org.apache.hop.core.util.Utils;
 import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.log.Defaults;
-import org.apache.hop.log.listeners.GelfLoggingEventListener;
 import org.apache.hop.workflow.WorkflowMeta;
 import org.apache.hop.workflow.engine.IWorkflowEngine;
 
@@ -34,7 +33,7 @@ import org.apache.hop.workflow.engine.IWorkflowEngine;
     id = "WorkflowLoggingExtensionPoint",
     extensionPointId = "WorkflowStart",
     description = "Handle custom logging for a pipeline")
-public class WorkflowLoggingExtensionPoint
+public class WorkflowLoggingExtensionPoint extends BaseLoggingExtensionPoint
     implements IExtensionPoint<IWorkflowEngine<WorkflowMeta>> {
 
   @Override
@@ -43,27 +42,31 @@ public class WorkflowLoggingExtensionPoint
       throws HopException {
 
     // Check if logging is enabled
-    if (Utils.isEmpty(variables.getVariable(Defaults.VARIABLE_CUSTOM_LOGGING_ENABLED))
-        || variables.getVariable(Defaults.VARIABLE_CUSTOM_LOGGING_ENABLED).equals("N")) {
+    if (Utils.isEmpty(variables.getVariable(Defaults.VAR_CUSTOM_LOGGING_ENABLED))
+        || variables.getVariable(Defaults.VAR_CUSTOM_LOGGING_ENABLED).equals("N")) {
       return;
     }
 
-    if (variables.getVariable(Defaults.LOGGER_SET_VAR) == null) {
-      GelfLoggingEventListener ls = new GelfLoggingEventListener();
+    if (variables.getVariable(Defaults.VAR_LOGGER_SET) == null) {
+
+      initEventListener(variables);
 
       if (ls.loggingEventListenerInit(variables)) {
-        variables.setVariable(Defaults.LOGGER_SET_VAR, "Y");
+        variables.setVariable(Defaults.VAR_LOGGER_SET, "Y");
         String itemName = workflowEngine.getWorkflowName();
-        variables.setVariable(Defaults.MAIN_PROCESS_NAME_VAR, itemName);
+        variables.setVariable(Defaults.VAR_MAIN_PROCESS_NAME, itemName);
 
         HopLogStore.getAppender().addLoggingEventListener(ls);
 
         workflowEngine.addWorkflowFinishedListener(
             workflowMetaIWorkflowEngine -> {
-              if (variables.getVariable(Defaults.MAIN_PROCESS_NAME_VAR).equals(itemName)) {
+              if (variables.getVariable(Defaults.VAR_MAIN_PROCESS_NAME).equals(itemName)) {
                 HopLogStore.getAppender().removeLoggingEventListener(ls);
               }
             });
+      } else {
+        logChannel.logBasic(
+            "WARNING! The custom logging event listener is not properly initialized and it will not be enabled.");
       }
     }
   }

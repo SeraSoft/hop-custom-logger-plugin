@@ -26,12 +26,14 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.hop.core.Const;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.logging.*;
+import org.apache.hop.core.util.Utils;
 import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.core.vfs.HopVfs;
 import org.apache.hop.log.Defaults;
 import org.apache.hop.log.util.HopLoglineFormatter;
 
-public class FileLoggingEventListener implements IHopLoggingEventListener {
+public class FileLoggingEventListener extends BaseLoggingEventListener
+        implements ICustomLoggingEventListener{
 
   private String filename;
   private FileObject file;
@@ -66,25 +68,26 @@ public class FileLoggingEventListener implements IHopLoggingEventListener {
     this.logChannelId = logChannelId;
   }
 
-  public boolean loggingEventListenerInit(IVariables variables) throws HopException {
+  public boolean postEventListenerInit(IVariables variables) throws HopException {
 
-    String processName = variables.getVariable(Defaults.PROCESS_IDENTIFIER_PARAM_NAME);
-    String executionTag = variables.getVariable(Defaults.LMS_EXECUTION_TAG_ATTRIBUTE_NAME);
-    String processId = variables.getVariable(Defaults.PROCESS_ID_VAR_NAME);
-
+    String processId = variables.getVariable(Defaults.VAR_PROCESS_ID);
 
     String outputDir =
-        variables.getVariable(Defaults.LOG_OUTPUT_DIRECTORY_PARAM_NAME) != null
-            ? variables.getVariable(Defaults.LOG_OUTPUT_DIRECTORY_PARAM_NAME)
-            : variables.getVariable(Defaults.LOG_OUTPUT_DIRECTORY_VAR_NAME);
+            !Utils.isEmpty(variables.getVariable(Defaults.PARM_LOG_OUTPUT_DIRECTORY))
+            ? variables.getVariable(Defaults.PARM_LOG_OUTPUT_DIRECTORY)
+            : variables.getVariable(Defaults.VAR_LOG_OUTPUT_DIRECTORY);
     if (outputDir == null) return false;
-    this.filename = outputDir + File.separator + processName + "_" + executionTag + ".log";
+
+
+    this.filename = outputDir + File.separator + this.processName + "_" + this.executionTagValue + ".log";
+    variables.setVariable(Defaults.VAR_LOG_FILENAME, this.filename);
+
 
     boolean append =
-            (variables.getVariable(Defaults.FILE_LOGGER_APPEND_FLAG_VAR_NAME) == null
+            (variables.getVariable(Defaults.VAR_FILE_LOGGER_APPEND) == null
                     ? true
-                    : variables.getVariable(Defaults.FILE_LOGGER_APPEND_FLAG_VAR_NAME).equals("Y"));
-    this.layout = new HopLoglineFormatter(processName, executionTag, processId, true);
+                    : variables.getVariable(Defaults.VAR_FILE_LOGGER_APPEND).equals("Y"));
+    this.layout = new HopLoglineFormatter(processName, this.executionTagValue, processId, true);
     this.exception = null;
 
     file = HopVfs.getFileObject(filename);
@@ -94,11 +97,6 @@ public class FileLoggingEventListener implements IHopLoggingEventListener {
     } catch (Exception e) {
       throw new HopException(
           "Unable to create a logging event listener to write to file '" + filename + "'", e);
-    }
-
-    if (executionTag == null) {
-      executionTag = (new SimpleDateFormat("yyyyMMddHHmmss")).format(new Date());
-      variables.setVariable(Defaults.LMS_EXECUTION_TAG_ATTRIBUTE_NAME, executionTag);
     }
 
     return true;

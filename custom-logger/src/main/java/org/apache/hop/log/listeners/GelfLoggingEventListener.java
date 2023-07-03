@@ -18,6 +18,8 @@
 package org.apache.hop.log.listeners;
 
 import java.net.InetSocketAddress;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import org.apache.hop.core.Const;
 import org.apache.hop.core.exception.HopException;
@@ -29,16 +31,16 @@ import org.apache.hop.log.util.HopLoglineFormatter;
 import org.graylog2.gelfclient.*;
 import org.graylog2.gelfclient.transport.GelfTransport;
 
-public class GelfLoggingEventListener implements IHopLoggingEventListener {
+public class GelfLoggingEventListener extends BaseLoggingEventListener
+    implements ICustomLoggingEventListener {
 
-  private String executionTag;
+
   private String processId;
   private String logChannelId;
-  private String processName;
   private String sourceSys;
   private String hostname;
   private String port;
-  private HopLoglineFormatter layout;
+  private HopLoglineFormatter loglineFormatter;
   private GelfConfiguration config;
   private GelfTransport transport;
   private HopException exception;
@@ -62,24 +64,25 @@ public class GelfLoggingEventListener implements IHopLoggingEventListener {
     this.logChannelId = logChannelId;
   }
 
-  public boolean loggingEventListenerInit(IVariables variables) throws HopException {
+  public boolean postEventListenerInit(IVariables variables) throws HopException {
 
-    this.processName = variables.getVariable(Defaults.PROCESS_IDENTIFIER_PARAM_NAME);
-    this.executionTag = variables.getVariable(Defaults.LMS_EXECUTION_TAG_ATTRIBUTE_NAME);
-    this.processId = variables.getVariable(Defaults.PROCESS_ID_VAR_NAME);
+    this.processId = variables.getVariable(Defaults.VAR_PROCESS_ID);
 
-    this.layout = new HopLoglineFormatter(processName, executionTag, processId, true);
+    // Default reference for this variable in case the log is managed through an LMS system
+    variables.setVariable(Defaults.VAR_LOG_FILENAME, "GrayLog LMS");
 
-    this.hostname = variables.getVariable(Defaults.LMS_HOST_VAR_NAME);
-    this.port = variables.getVariable(Defaults.LMS_PORT_VAR_NAME);
+    this.loglineFormatter = new HopLoglineFormatter(this.processName, this.executionTagValue, processId, true);
+
+    this.hostname = variables.getVariable(Defaults.VAR_LMS_HOST);
+    this.port = variables.getVariable(Defaults.VAR_LMS_PORT);
 
     if (Utils.isEmpty(this.hostname) || Utils.isEmpty(this.port)) {
       return false;
     }
 
     this.sourceSys =
-        (variables.getVariable(Defaults.SOURCE_SYS_VAR_NAME) != null
-            ? variables.getVariable(Defaults.SOURCE_SYS_VAR_NAME)
+        (variables.getVariable(Defaults.VAR_SOURCE_SYS_NAME) != null
+            ? variables.getVariable(Defaults.VAR_SOURCE_SYS_NAME)
             : Const.getHostnameReal());
 
     this.config =
@@ -122,14 +125,14 @@ public class GelfLoggingEventListener implements IHopLoggingEventListener {
           GelfMessage msg =
               msgBuilder
                   .message(((LogMessage) messageObject).getMessage())
-                  .additionalField("_stream_type", Defaults.STREAM_TYPE)
+                  .additionalField("_stream_type", Defaults.VALUE_STREAM_TYPE)
                   .additionalField("_process_name", this.processName)
                   // TODO: Temporarily commented because is not generated as the very first thing so
                   // there are lines that has this field missing
                   // .additionalField("_process_id", this.processId)
-                  .additionalField("_execution_tag", this.executionTag)
+                  .additionalField("_execution_tag", this.executionTagValue)
                   .additionalField("_path", ((LogMessage) messageObject).getSubject())
-                  .fullMessage(layout.format(event))
+                  .fullMessage(loglineFormatter.format(event))
                   .level(
                       logLevel.equals(LogLevel.ERROR)
                           ? GelfMessageLevel.ERROR

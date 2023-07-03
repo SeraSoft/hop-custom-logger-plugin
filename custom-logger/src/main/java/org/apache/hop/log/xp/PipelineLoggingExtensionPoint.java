@@ -25,7 +25,6 @@ import org.apache.hop.core.logging.ILogChannel;
 import org.apache.hop.core.util.Utils;
 import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.log.Defaults;
-import org.apache.hop.log.listeners.GelfLoggingEventListener;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.engine.IPipelineEngine;
 
@@ -34,7 +33,7 @@ import org.apache.hop.pipeline.engine.IPipelineEngine;
     id = "PipelineLoggingExtensionPoint",
     extensionPointId = "PipelineStartThreads",
     description = "Handle custom logging for a pipeline")
-public class PipelineLoggingExtensionPoint
+public class PipelineLoggingExtensionPoint extends BaseLoggingExtensionPoint
     implements IExtensionPoint<IPipelineEngine<PipelineMeta>> {
 
   @Override
@@ -43,24 +42,23 @@ public class PipelineLoggingExtensionPoint
       throws HopException {
 
     // Check if logging is enabled
-    if (Utils.isEmpty(variables.getVariable(Defaults.VARIABLE_CUSTOM_LOGGING_ENABLED))
-        || variables.getVariable(Defaults.VARIABLE_CUSTOM_LOGGING_ENABLED).equals("N")) {
+    if (Utils.isEmpty(variables.getVariable(Defaults.VAR_CUSTOM_LOGGING_ENABLED))
+            || variables.getVariable(Defaults.VAR_CUSTOM_LOGGING_ENABLED).equals("N")) {
       return;
     }
 
-    if (variables.getVariable(Defaults.LOGGER_SET_VAR) == null) {
-      GelfLoggingEventListener ls = new GelfLoggingEventListener();
-
-      if (ls.loggingEventListenerInit(variables)) {
-        variables.setVariable(Defaults.LOGGER_SET_VAR, "Y");
+    if (variables.getVariable(Defaults.VAR_LOGGER_SET) == null) {
+      initEventListener(variables);
+      if (this.ls.loggingEventListenerInit(variables)) {
+        variables.setVariable(Defaults.VAR_LOGGER_SET, "Y");
         String itemName = pipelineEngine.getPipelineMeta().getName();
-        variables.setVariable(Defaults.MAIN_PROCESS_NAME_VAR, itemName);
+        variables.setVariable(Defaults.VAR_MAIN_PROCESS_NAME, itemName);
 
         HopLogStore.getAppender().addLoggingEventListener(ls);
 
         pipelineEngine.addExecutionFinishedListener(
             pipelineEventRef -> {
-              if (variables.getVariable(Defaults.MAIN_PROCESS_NAME_VAR).equals(itemName)) {
+              if (variables.getVariable(Defaults.VAR_MAIN_PROCESS_NAME).equals(itemName)) {
                 HopLogStore.getAppender().removeLoggingEventListener(ls);
               }
             });
