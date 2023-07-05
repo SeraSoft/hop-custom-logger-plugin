@@ -49,6 +49,7 @@ public class PipelineLoggingExtensionPoint extends BaseLoggingExtensionPoint
 
     if (variables.getVariable(Defaults.VAR_LOGGER_SET) == null) {
       initEventListener(variables);
+      setProcessId(variables);
       if (this.ls.loggingEventListenerInit(variables)) {
         variables.setVariable(Defaults.VAR_LOGGER_SET, "Y");
         String itemName = pipelineEngine.getPipelineMeta().getName();

@@ -23,6 +23,8 @@ import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.log.Defaults;
 import org.apache.hop.log.listeners.ICustomLoggingEventListener;
 
+import java.util.UUID;
+
 public class BaseLoggingExtensionPoint {
 
   protected ICustomLoggingEventListener ls;
@@ -45,8 +47,18 @@ public class BaseLoggingExtensionPoint {
     } else {
       throw new HopException("CUSTOM_LOGGING_LISTENER_CLASS variable not present or value not specified!");
     }
-
+    // Generate process identifier
+    String processIdentifier = UUID.randomUUID().toString();
 
     return true;
+  }
+
+  protected void setProcessId(IVariables variables) {
+
+    String processIdVarName = variables.getVariable(Defaults.PROCESS_ID_VAR_NAME);
+    String processIdParam = variables.getVariable(processIdVarName, "p_process_id");
+    String generatedProcId = UUID.randomUUID().toString();
+    variables.setVariable(processIdParam, generatedProcId);
+
   }
 }

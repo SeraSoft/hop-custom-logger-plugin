@@ -50,6 +50,7 @@ public class WorkflowLoggingExtensionPoint extends BaseLoggingExtensionPoint
     if (variables.getVariable(Defaults.VAR_LOGGER_SET) == null) {
 
       initEventListener(variables);
+      setProcessId(variables);
 
       if (ls.loggingEventListenerInit(variables)) {
         variables.setVariable(Defaults.VAR_LOGGER_SET, "Y");

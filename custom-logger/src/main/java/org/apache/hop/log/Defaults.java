@@ -20,12 +20,18 @@ package org.apache.hop.log;
 
 public class Defaults {
 
-  public static final String VAR_CUSTOM_LOGGING_LISTENER_CLASS = "CUSTOM_LOGGING_LISTENER_CLASS";
-  public static final String VAR_CUSTOM_LOGGING_ENABLED = "CUSTOM_LOGGING_ENABLED";
-  public static final String VAR_PARM_PROCESS_IDENTIFIER_NAME = "CUSTOM_LOGGER_PARAM_PROC_IDENTIFIER";
-  public static final String VAR_PARM_PROCESS_CODE_NAME = "CUSTOM_LOGGER_PARAM_PROC_CODE";
+  public static final String VAR_CUSTOM_LOGGING_ENABLED = "CUSTOM_LOGGER_ENABLED";
+  // Custom logger classname to be enabled
+  public static final String VAR_CUSTOM_LOGGING_LISTENER_CLASS = "LOGGER_LISTENER_CLASS";
+  // Name of the variable/parameter that will contain the process identifier value
+  public static final String PROC_IDENTIFIER_VALUE_VAR_NAME = "PROC_IDENTIFIER_VALUE_VAR_NAME";
+  // Name of the attribute that will contain the process identifier attribute name
+  public static final String PROC_IDENTIFIER_ATTRIBUTE_NAME = "PROC_IDENTIFIER_ATTR_NAME";
+  // Name of the attribute that will contain the execution timestamp. Identify the execution start instance
+  public static final String EXEC_TIMESTAMP_ATTR_NAME = "EXEC_TIMESTAMP_ATTR_NAME";
 
-  public static final String EXECUTION_TAG_ATTRIBUTE_NAME = "execution_tag";
+  public static final String PROCESS_ID_VAR_NAME = "PROCESS_ID_VAR_NAME";
+
 
   // Hop workflow/pipeline parameter to contain output directory name. If specified it overrides the
   // LOG_OUTPUT_DIRECTORY_VAR_NAME variable
@@ -37,22 +43,18 @@ public class Defaults {
 
   // Hop variable to contain output directory name
   public static final String VAR_LOG_OUTPUT_DIRECTORY = "FILE_LOGGING_OUTPUT_DIR";
-
   // Set to Y if we want to always append the rows to the log file stream
   public static final String VAR_FILE_LOGGER_APPEND = "FILE_LOGGING_APPEND";
-  public static final String VALUE_STREAM_TYPE = "HopEvents";
-
-  // Hidden variable to synchronize the fact that a custom logger has already been set
-  public static final String VAR_LOGGER_SET = "LOGGER_SET";
-  public static final String VAR_PROCESS_ID = "v_process_id";
-
-  // Hidden variable to track the name of the first object that Hop started being it a workflow or a
-  // pipeline. Needed to exactly know which actor will remove the logger listener when everything
-  // will complete
-  public static final String VAR_MAIN_PROCESS_NAME = "MAIN_PROCESS_NAME";
   public static final String VAR_LMS_PORT = "GRAYLOG_LMS_PORT";
   public static final String VAR_LMS_HOST = "GRAYLOG_LMS_HOST";
 
   // Overrides the system's domain name/ip if specified. Used in Gelf logging listener
   public static final String VAR_SOURCE_SYS_NAME = "GRAYLOG_SOURCE_SYS_NAME";
+
+  // Hidden variable to synchronize the fact that a custom logger has already been set
+  public static final String VAR_LOGGER_SET = "LOGGER_SET";
+  // Hidden variable to track the name of the first object that Hop started being it a workflow or a
+  // pipeline. Needed to exactly know which actor will remove the logger listener when everything
+  // will complete
+  public static final String VAR_MAIN_PROCESS_NAME = "MAIN_PROCESS_NAME";
 }

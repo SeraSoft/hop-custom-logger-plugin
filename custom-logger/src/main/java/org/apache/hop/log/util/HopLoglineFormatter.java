@@ -88,9 +88,7 @@ public class HopLoglineFormatter {
 
           line.append(!Utils.isEmpty(this.baseProcessName) ? "[" + this.baseProcessName + "] - " : "");
           line.append(!Utils.isEmpty(this.executionTag) ? "[" + this.executionTag + "] - " : "");
-          // TODO: Temporarily commented because is not generated as the very first thing so
-          // there are lines that has this field missing
-          // line.append(!Utils.isEmpty(this.processId) ? "[" + this.processId + "] - " : "");
+          line.append(!Utils.isEmpty(this.processId) ? "[" + this.processId + "] - " : "");
 
           // Include the subject too on every line...
           if (message.getSubject() != null) {

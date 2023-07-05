@@ -18,8 +18,6 @@
 package org.apache.hop.log.listeners;
 
 import java.net.InetSocketAddress;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import org.apache.hop.core.Const;
 import org.apache.hop.core.exception.HopException;
@@ -35,7 +33,7 @@ public class GelfLoggingEventListener extends BaseLoggingEventListener
     implements ICustomLoggingEventListener {
 
 
-  private String processId;
+
   private String logChannelId;
   private String sourceSys;
   private String hostname;
@@ -66,12 +64,11 @@ public class GelfLoggingEventListener extends BaseLoggingEventListener
 
   public boolean postEventListenerInit(IVariables variables) throws HopException {
 
-    this.processId = variables.getVariable(Defaults.VAR_PROCESS_ID);
 
     // Default reference for this variable in case the log is managed through an LMS system
     variables.setVariable(Defaults.VAR_LOG_FILENAME, "GrayLog LMS");
 
-    this.loglineFormatter = new HopLoglineFormatter(this.processName, this.executionTagValue, processId, true);
+    this.loglineFormatter = new HopLoglineFormatter();
 
     this.hostname = variables.getVariable(Defaults.VAR_LMS_HOST);
     this.port = variables.getVariable(Defaults.VAR_LMS_PORT);
@@ -125,13 +122,12 @@ public class GelfLoggingEventListener extends BaseLoggingEventListener
           GelfMessage msg =
               msgBuilder
                   .message(((LogMessage) messageObject).getMessage())
-                  .additionalField("_stream_type", Defaults.VALUE_STREAM_TYPE)
-                  .additionalField("_process_name", this.processName)
-                  // TODO: Temporarily commented because is not generated as the very first thing so
-                  // there are lines that has this field missing
-                  // .additionalField("_process_id", this.processId)
-                  .additionalField("_execution_tag", this.executionTagValue)
+                  .additionalField(
+                      "_" + this.processIdenfifierAttrNameParam, this.processIdentifierValueParam)
+                  .additionalField(
+                      "_" + this.executionTimestampAttrName, this.executionTimestampValue)
                   .additionalField("_path", ((LogMessage) messageObject).getSubject())
+                  .additionalField("_process_id", this.processId)
                   .fullMessage(loglineFormatter.format(event))
                   .level(
                       logLevel.equals(LogLevel.ERROR)

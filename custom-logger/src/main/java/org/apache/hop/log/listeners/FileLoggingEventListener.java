@@ -19,8 +19,6 @@ package org.apache.hop.log.listeners;
 
 import java.io.File;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.hop.core.Const;
@@ -70,8 +68,6 @@ public class FileLoggingEventListener extends BaseLoggingEventListener
 
   public boolean postEventListenerInit(IVariables variables) throws HopException {
 
-    String processId = variables.getVariable(Defaults.VAR_PROCESS_ID);
-
     String outputDir =
             !Utils.isEmpty(variables.getVariable(Defaults.PARM_LOG_OUTPUT_DIRECTORY))
             ? variables.getVariable(Defaults.PARM_LOG_OUTPUT_DIRECTORY)
@@ -79,15 +75,16 @@ public class FileLoggingEventListener extends BaseLoggingEventListener
     if (outputDir == null) return false;
 
 
-    this.filename = outputDir + File.separator + this.processName + "_" + this.executionTagValue + ".log";
+    this.filename = outputDir + File.separator + this.processIdentifierValueParam + "_" + this.executionTimestampValue + ".log";
     variables.setVariable(Defaults.VAR_LOG_FILENAME, this.filename);
+
 
 
     boolean append =
             (variables.getVariable(Defaults.VAR_FILE_LOGGER_APPEND) == null
                     ? true
                     : variables.getVariable(Defaults.VAR_FILE_LOGGER_APPEND).equals("Y"));
-    this.layout = new HopLoglineFormatter(processName, this.executionTagValue, processId, true);
+    this.layout = new HopLoglineFormatter(processIdentifierValueParam, this.executionTimestampValue, this.processId, true);
     this.exception = null;
 
     file = HopVfs.getFileObject(filename);
