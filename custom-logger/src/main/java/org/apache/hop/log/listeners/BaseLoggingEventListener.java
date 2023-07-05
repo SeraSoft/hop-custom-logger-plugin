@@ -37,33 +37,24 @@ public abstract class BaseLoggingEventListener {
     String loggerClassName = variables.getVariable(Defaults.VAR_CUSTOM_LOGGING_LISTENER_CLASS);
 
     if (!loggerClassName.equals("org.apache.hop.log.listeners")) {
-      String processIdenfifierAttrNameParam =
+      String processIdentifierAttrNameParam =
           variables.getVariable(Defaults.PROC_IDENTIFIER_ATTRIBUTE_NAME);
-      if (!Utils.isEmpty(processIdenfifierAttrNameParam)) {
-        throw new HopException("PROC_IDENTIFIER_ATTRIBUTE_NAME variable has not been set!");
-      }
       this.processIdenfifierAttrNameParam =
           variables.getVariable(
-              processIdenfifierAttrNameParam, "p_logger_proc_identifier_attribute");
+              processIdentifierAttrNameParam, "p_logger_proc_identifier_attribute");
+
 
       String executionTimestampAttrName = variables.getVariable(Defaults.EXEC_TIMESTAMP_ATTR_NAME);
-      if (!Utils.isEmpty(executionTimestampAttrName)) {
-        throw new HopException("EXEC_TIMESTAMP_ATTR_NAME variable has not been set!");
-      }
-      this.executionTimestampAttrName =
-          variables.getVariable(processIdenfifierAttrNameParam, "execution_timestamp");
+       this.executionTimestampAttrName =
+          variables.getVariable(executionTimestampAttrName, "execution_timestamp");
     }
 
     String processIdentifierValueParam =
         variables.getVariable(Defaults.PROC_IDENTIFIER_VALUE_VAR_NAME);
-    if (!Utils.isEmpty(processIdentifierValueParam)) {
-      throw new HopException("PROC_IDENTIFIER_VARIABLE variable has not been set!");
-    }
-
     this.processIdentifierValueParam =
         variables.getVariable(processIdentifierValueParam, "p_logger_proc_identifier");
 
-    if (!Utils.isEmpty(processIdentifierValueParam)) {
+    if (Utils.isEmpty(processIdentifierValueParam)) {
       throw new HopException(processIdentifierValueParam + " parameter value has not been set!");
     }
 

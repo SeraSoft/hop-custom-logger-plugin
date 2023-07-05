@@ -20,9 +20,9 @@ package org.apache.hop.log;
 
 public class Defaults {
 
-  public static final String VAR_CUSTOM_LOGGING_ENABLED = "CUSTOM_LOGGER_ENABLED";
+  public static final String VAR_CUSTOM_LOGGING_ENABLED = "CUSTOM_LOGGING_ENABLED";
   // Custom logger classname to be enabled
-  public static final String VAR_CUSTOM_LOGGING_LISTENER_CLASS = "LOGGER_LISTENER_CLASS";
+  public static final String VAR_CUSTOM_LOGGING_LISTENER_CLASS = "LOGGING_LISTENER_CLASS";
   // Name of the variable/parameter that will contain the process identifier value
   public static final String PROC_IDENTIFIER_VALUE_VAR_NAME = "PROC_IDENTIFIER_VALUE_VAR_NAME";
   // Name of the attribute that will contain the process identifier attribute name
