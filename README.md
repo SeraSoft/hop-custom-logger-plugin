@@ -5,10 +5,12 @@
 * Java JDK 11
 
 ## Overview
+This plugin is seed for a custom logger to be deployed in Apache Hop
 
-TBD
+
+Feel free to suggest any improvements and to file issues by the plugin issue tracker.
 
 ## Building
 
-TBD
+From the main directory, or any of the module sub-directories, run `mvn clean package`.
 

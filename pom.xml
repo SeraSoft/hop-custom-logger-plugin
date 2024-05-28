@@ -12,33 +12,78 @@
     <name>HOP Custom Logger Plugin</name>
     <description>Maven POM for Hop Custom Logger plugin</description>
 
-
     <properties>
         <!-- Set this to the Hop version you want to debug against-->
-        <hop.version>2.5.0-SNAPSHOT</hop.version>
-
+        <hop.version>2.9.0</hop.version>
 
         <!-- Third-party dependencies-->
         <org.eclipse.platform.version>3.119.0</org.eclipse.platform.version>
         <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
 
         <!-- Jandex For annotation Detection -->
-        <jandex.version>2.2.2.Final</jandex.version>
+        <jandex.version>3.1.6</jandex.version>
         <junit.version>4.13.1</junit.version>
 
         <!-- Java version -->
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <source.jdk.version>11</source.jdk.version>
+        <target.jdk.version>11</target.jdk.version>
+        <maven.compiler.source>${source.jdk.version}</maven.compiler.source>
+        <maven.compiler.target>${target.jdk.version}</maven.compiler.target>
 
     </properties>
 
     <modules>
-        <module>custom-logger</module>
+        <module>plugins</module>
         <module>assemblies</module>
     </modules>
 
-
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${source.jdk.version}</source>
+                        <target>${target.jdk.version}</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven-assembly-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>io.smallrye</groupId>
+                    <artifactId>jandex-maven-plugin</artifactId>
+                    <version>${jandex.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${source.jdk.version}</source>
+                    <target>${target.jdk.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.smallrye</groupId>
+                <artifactId>jandex-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>make-index</id>
+                        <goals>
+                            <goal>jandex</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 
     <!-- needed for correct SWT libs dependending on system -->
