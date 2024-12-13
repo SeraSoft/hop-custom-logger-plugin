@@ -30,7 +30,7 @@ import org.apache.hop.workflow.engine.IWorkflowEngine;
 
 /** Transform That contains the basic skeleton needed to create your own plugin */
 @ExtensionPoint(
-    id = "WorkflowLoggingExtensionPoint",
+    id = "SeraWorkflowLoggingXP",
     extensionPointId = "WorkflowStart",
     description = "Handle custom logging for a pipeline")
 public class WorkflowLoggingExtensionPoint extends BaseLoggingExtensionPoint

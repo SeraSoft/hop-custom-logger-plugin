@@ -51,12 +51,12 @@ public abstract class BaseLoggingEventListener {
 
     String processIdentifierValueParam =
         variables.getVariable(Defaults.PROC_IDENTIFIER_VALUE_VAR_NAME);
-    this.processIdentifierValueParam =
-        variables.getVariable(processIdentifierValueParam, "p_logger_proc_identifier");
-
     if (Utils.isEmpty(processIdentifierValueParam)) {
-      throw new HopException(processIdentifierValueParam + " parameter value has not been set!");
+      throw new HopException(Defaults.PROC_IDENTIFIER_VALUE_VAR_NAME + " variable value has not been set!");
     }
+
+    this.processIdentifierValueParam =
+        variables.getVariable(processIdentifierValueParam);
 
     this.executionTimestampValue = (new SimpleDateFormat("yyyyMMddHHmmssss")).format(new Date());
 

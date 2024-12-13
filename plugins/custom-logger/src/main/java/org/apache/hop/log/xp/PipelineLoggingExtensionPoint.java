@@ -30,7 +30,7 @@ import org.apache.hop.pipeline.engine.IPipelineEngine;
 
 /** Transform That contains the basic skeleton needed to create your own plugin */
 @ExtensionPoint(
-    id = "PipelineLoggingExtensionPoint",
+    id = "SerPipelineLoggingXP",
     extensionPointId = "PipelineStartThreads",
     description = "Handle custom logging for a pipeline")
 public class PipelineLoggingExtensionPoint extends BaseLoggingExtensionPoint
